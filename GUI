@@ -1,0 +1,223 @@
+from tkinter import *
+import sqlite3
+
+root = Tk()
+root.title("Database")
+# creating the database
+conn = sqlite3.connect("Student.db")
+
+# cursor
+cursor = conn.cursor()
+# creating save function
+
+
+def submit():
+    global conn
+    global cursor
+    # creating the database
+    conn = sqlite3.connect("Student.db")
+    # cursor
+    cursor = conn.cursor()
+    # inserting into table
+    cursor.execute("INSERT INTO student VALUES (:student_name, :student_id, :branch, :college)",
+                   {
+                       'student_name': student_name.get(),
+                       'student_id': student_id.get(),
+                       'branch': branch.get(),
+                       'college': college.get()
+                   })
+    # commit
+    conn.commit()
+    # close
+    conn.close()
+    student_name.delete(0, END)
+    student_id.delete(0, END)
+    branch.delete(0, END)
+    college.delete(0, END)
+
+
+# creating query function
+
+
+def query():
+    global conn
+    global cursor
+    # creating the database
+    conn = sqlite3.connect("Student.db")
+    # cursor
+    cursor = conn.cursor()
+    cursor.execute("SELECT *,oid FROM student")
+    record = cursor.fetchall()
+    print_record = " "
+    # looping through results
+    for records in record:
+        print_record += str(record) + "\n"
+        break
+    showing = Label(root, text=print_record)
+    showing.grid(row=10, column=0, columnspan=2)
+    # commit
+    conn.commit()
+    # close
+    conn.close()
+
+# creating delete function
+
+
+def delete():
+    global conn
+    global cursor
+    # creating the database
+    conn = sqlite3.connect("Student.db")
+    # cursor
+    cursor = conn.cursor()
+    # deleting the record
+    cursor.execute("DELETE FROM student WHERE oid = " + delete_box.get())
+    delete_box.delete(0, END)
+    # commit
+    conn.commit()
+    # close
+    conn.close()
+# creating save function
+
+
+def save_record():
+    global conn
+    global cursor
+    # creating the database
+    conn = sqlite3.connect("Student.db")
+    # cursor
+    cursor = conn.cursor()
+    # deleting the boxes
+    record_id = delete_box.get()
+
+    cursor.execute("""UPDATE student SET
+                stud_name = :student_name,
+                stud_id = :student_id,
+                branch = :branch,
+                college = :college
+                
+                WHERE oid = :oid""",
+                   {
+                       'student_name': student_name_editor.get(),
+                       'student_id': student_id_editor.get(),
+                       'branch': branch_editor.get(),
+                       'college': college_editor.get(),
+                       'oid': record_id
+                   })
+    # commit
+    conn.commit()
+    # close
+    conn.close()
+    editor.destroy()
+
+# creating edit function
+
+
+def edit():
+    global editor
+    global conn
+    global cursor
+    editor = Tk()
+    editor.title("Update record")
+    # creating the database
+    conn = sqlite3.connect("Student.db")
+    # cursor
+    cursor = conn.cursor()
+    # deleting the record
+    record_id = delete_box.get()
+    cursor.execute("SELECT * FROM student WHERE oid = " + record_id)
+    records = cursor.fetchall()
+    # commit
+    conn.commit()
+    # close
+    conn.close()
+    # creating global variables
+    global student_name_editor
+    global student_id_editor
+    global branch_editor
+    global college_editor
+    # creating boxes
+    student_name_editor = Entry(editor, width=30)
+    student_name_editor.grid(row=0, column=1, padx=10, pady=5)
+    student_id_editor = Entry(editor, width=30)
+    student_id_editor.grid(row=1, column=1, padx=10, pady=5)
+    branch_editor = Entry(editor, width=30)
+    branch_editor.grid(row=2, column=1, padx=10, pady=5)
+    college_editor = Entry(editor, width=30)
+    college_editor.grid(row=3, column=1, padx=10, pady=5)
+    # creating Labels
+    student_name_label_editor = Label(editor, text="Name of the student")
+    student_name_label_editor.grid(row=0, column=0)
+    student_id_label_editor = Label(editor, text="ID")
+    student_id_label_editor.grid(row=1, column=0)
+    branch_label_editor = Label(editor, text="Branch")
+    branch_label_editor.grid(row=2, column=0)
+    college_label_editor = Label(editor, text="College Name")
+    college_label_editor.grid(row=3, column=0)
+
+    for record in records:
+        student_name_editor.insert(0, record[0])
+        student_id_editor.insert(0, record[1])
+        branch_editor.insert(0, record[2])
+        college_editor.insert(0, record[3])
+
+    Button(editor, text="Save Records", command=save_record).grid(row=4, column=0, columnspan=2, padx=10,
+                                                                  pady=5)
+
+
+# creating table
+#
+# cursor.execute("""CREATE TABLE student (
+#                 stud_name text,
+#                 stud_id integer,
+#                 branch text,
+#                 college text)""")
+# creating boxes
+student_name = Entry(root, width=30)
+student_name.grid(row=0, column=1, padx=10, pady=5)
+student_id = Entry(root, width=30)
+student_id.grid(row=1, column=1, padx=10, pady=5)
+branch = Entry(root, width=30)
+branch.grid(row=2, column=1, padx=10, pady=5)
+college = Entry(root, width=30)
+college.grid(row=3, column=1, padx=10, pady=5)
+delete_box = Entry(root, width=30)
+delete_box.grid(row=6, column=1, padx=10, pady=5)
+# creating Labels
+student_name_label = Label(root, text="Name of the student")
+student_name_label.grid(row=0, column=0)
+student_id_label = Label(root, text="ID")
+student_id_label.grid(row=1, column=0)
+branch_label = Label(root, text="Branch")
+branch_label.grid(row=2, column=0)
+college_label = Label(root, text="College Name")
+college_label.grid(row=3, column=0)
+delete_label = Label(root, text="Select ID")
+delete_label.grid(row=6, column=0)
+
+
+# creating save buttons
+save = Button(root, text="save records", command=submit)
+save.grid(row=4, column=0, columnspan=2, pady=5)
+
+# creating query function
+show_record = Button(root, text="show records", command=query)
+show_record.grid(row=5, column=0, columnspan=2, pady=5)
+
+
+# creating the delete button
+remove = Button(root, text="Delete record", command=delete)
+remove.grid(row=8, column=0, columnspan=2, pady=10)
+
+# creating the edit button
+e = Button(root, text="Edit record", command=edit)
+e.grid(row=9, column=0, columnspan=2, pady=10)
+
+
+# commit
+conn.commit()
+# close
+conn.close()
+
+
+root.mainloop()
